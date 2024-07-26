@@ -1,61 +1,55 @@
-import React, {useState} from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Alert,
-} from 'react-native';
-import {
-  Camera,
-  useCameraDevice,
-  useCameraPermission,
-  useCodeScanner,
-} from 'react-native-vision-camera';
-import {requestCameraPermissions} from './src/utils/Permission';
+import * as React from 'react';
+import { View, Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import ScanQR from './src/screens/ScanQR';
+import Login from './src/screens/Login';
+import { ThemeProvider } from './src/contexts/ThemeContext';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import store, { persistor } from './src/store';
+import { AuthProvider } from './src/contexts/AuthContext';
 
-function ScanQRScreen() {
-  const device = useCameraDevice('back');
-  const {hasPermission} = useCameraPermission();
-  const [isScanning, setIsScanning] = useState(true);
 
-  const codeScanner = useCodeScanner({
-    codeTypes: ['qr', 'upc-a'],
-    onCodeScanned: codes => {
-      if (isScanning) {
-        setIsScanning(false);
-        for (const code of codes) {
-          console.log(code);
-        }
-        Alert.alert('QR Code Scanned', 'A QR code has been scanned.', [
-          {text: 'OK', onPress: () => setIsScanning(true)},
-        ]);
-      }
-    },
-  });
+const Stack = createNativeStackNavigator();
 
-  if (!hasPermission) {
-    console.log(' ---hasPermission---> ',hasPermission )
-    requestCameraPermissions();
-    Camera.requestCameraPermission().then(()=>{
-      console.log(' ---permission granted---> ')
-    }).catch((err)=>{
-      console.log(' ---no permission---> ')
-    })
-    return console.log(' ---no permission---> ');
-  }
-  if (device == null) return console.log(' ---no camera---> ');
+function App() {
   return (
-    <View style={{flex: 1}}>
-    <Camera
-      style={StyleSheet.absoluteFill}
-      device={device}
-      isActive={isScanning}
-      codeScanner={codeScanner}
-    />
-    </View>
+    <ThemeProvider>
+<AuthProvider>
+
+<Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+            <NavigationContainer>
+      <Stack.Navigator>
+        
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="ScanQR" component={ScanQR} />
+      </Stack.Navigator>
+    </NavigationContainer>
+            </PersistGate>
+          </Provider>
+          </AuthProvider>
+    </ThemeProvider>
   );
 }
 
-const styles = StyleSheet.create({});
+export default App;
 
-export default ScanQRScreen;
+
+// import React from 'react';
+// import {Text, View} from 'react-native';
+
+// const HelloWorldApp = () => {
+//   return (
+//     <View
+//       style={{
+//         flex: 1,
+//         justifyContent: 'center',
+//         alignItems: 'center',
+//       }}>
+//       <Text>Hello, world!</Text>
+//     </View>
+//   );
+// };
+// export default HelloWorldApp;
